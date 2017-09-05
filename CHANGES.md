@@ -2,6 +2,7 @@ Contargo Types
 ===============
 
 ## v0.6.3 (Release on xxxx-xx-xx)
+* `LicensePlate`: Allow access to normalized value. It is even available, when it doesn't represent a valid `LicensePlate`. 
 
 ## v0.6.2 (Release on 2017-08-28)
 

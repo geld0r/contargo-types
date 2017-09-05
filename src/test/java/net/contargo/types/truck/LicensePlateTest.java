@@ -6,6 +6,8 @@ import org.junit.Test;
 
 import org.mockito.Mockito;
 
+import static org.mockito.Mockito.when;
+
 
 /**
  * @author  Aljona Murygina - murygina@synyx.de
@@ -67,32 +69,29 @@ public class LicensePlateTest {
         String value = "foo";
         String normalizedValue = "formatted";
 
-        Mockito.when(handlerMock.validate(Mockito.anyString())).thenReturn(true);
-        Mockito.when(handlerMock.normalize(Mockito.anyString())).thenReturn(normalizedValue);
+        when(handlerMock.validate(Mockito.anyString())).thenReturn(true);
+        when(handlerMock.normalize(Mockito.anyString())).thenReturn(normalizedValue);
 
         LicensePlate licensePlate = LicensePlate.forValue(value).withCountry(country);
 
         Assert.assertEquals("Wrong String representation", normalizedValue, licensePlate.toString());
-        Mockito.verify(handlerMock).validate(value);
-        Mockito.verify(handlerMock).normalize(value);
     }
 
 
     @Test
-    public void ensureInvalidLicensePlateIsNotFormatted() {
+    public void ensureInvalidLicensePlateIsFormattedOnToString() {
 
         LicensePlateHandler handlerMock = Mockito.mock(LicensePlateHandler.class);
         Country country = new DummyCountry(handlerMock);
 
-        String value = "foo";
-
-        Mockito.when(handlerMock.validate(Mockito.anyString())).thenReturn(false);
+        String value = "fo-o ";
+        String normalizedValue = "foo";
+        when(handlerMock.normalize(value)).thenReturn(normalizedValue);
 
         LicensePlate licensePlate = LicensePlate.forValue(value).withCountry(country);
 
-        Assert.assertEquals("Wrong String representation", value, licensePlate.toString());
-        Mockito.verify(handlerMock).validate(value);
-        Mockito.verify(handlerMock, Mockito.never()).normalize(value);
+        Assert.assertEquals("Wrong String representation", normalizedValue, licensePlate.toString());
+        Mockito.verify(handlerMock).normalize(value);
     }
 
 
@@ -106,12 +105,32 @@ public class LicensePlateTest {
         Country country = new DummyCountry(handlerMock);
         String value = "foo";
 
-        Mockito.when(handlerMock.validate(Mockito.anyString())).thenReturn(true);
+        when(handlerMock.normalize(value)).thenReturn(value);
+        when(handlerMock.validate(Mockito.anyString())).thenReturn(true);
 
         LicensePlate licensePlate = LicensePlate.forValue(value).withCountry(country);
 
         Assert.assertTrue("Should be valid", licensePlate.isValid());
         Mockito.verify(handlerMock).validate(value);
+    }
+
+
+    @Test
+    public void ensureHandlerForCountryIsCalledOnlyOnceOnIsValid() {
+
+        LicensePlateHandler handlerMock = Mockito.mock(LicensePlateHandler.class);
+        Country country = new DummyCountry(handlerMock);
+        String value = "foo";
+
+        when(handlerMock.normalize(value)).thenReturn(value);
+        when(handlerMock.validate(Mockito.anyString())).thenReturn(true);
+
+        LicensePlate licensePlate = LicensePlate.forValue(value).withCountry(country);
+
+        Assert.assertTrue("Should be valid", licensePlate.isValid());
+        Assert.assertTrue("Should be valid", licensePlate.isValid());
+        Assert.assertTrue("Should be valid", licensePlate.isValid());
+        Mockito.verify(handlerMock, Mockito.times(1)).validate(value);
     }
 
 

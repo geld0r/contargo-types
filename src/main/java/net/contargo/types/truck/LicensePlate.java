@@ -11,18 +11,34 @@ import net.contargo.types.util.Assert;
  */
 public final class LicensePlate {
 
-    private final String value;
-    private Country country;
+    private final String normalizedValue;
+    private final Country country;
+    private final boolean isValid;
 
     /**
      * Use {@link #forValue(String)} to build a new {@link LicensePlate} instance.
      *
      * @param  value  represents a license plate
+     * @param  country  the {@link Country} where the license plate is registered
      */
-    private LicensePlate(String value) {
+    private LicensePlate(String value, Country country) {
 
-        this.value = value;
+        this.normalizedValue = normalize(country, value);
+        this.country = country;
+        this.isValid = validate(country, normalizedValue);
     }
+
+    private static String normalize(Country country, String rawValue) {
+
+        return country.getLicensePlateHandler().normalize(rawValue);
+    }
+
+
+    private static boolean validate(Country country, String value) {
+
+        return country.getLicensePlateHandler().validate(value);
+    }
+
 
     /**
      * Build a new {@link LicensePlate} with a {@link String} value.
@@ -47,11 +63,7 @@ public final class LicensePlate {
     @Override
     public String toString() {
 
-        if (isValid()) {
-            return country.getLicensePlateHandler().normalize(value);
-        }
-
-        return value;
+        return normalizedValue;
     }
 
 
@@ -62,7 +74,7 @@ public final class LicensePlate {
      */
     public boolean isValid() {
 
-        return country.getLicensePlateHandler().validate(value);
+        return isValid;
     }
 
 
@@ -105,11 +117,11 @@ public final class LicensePlate {
 
     public static class LicensePlateBuilder {
 
-        private LicensePlate licensePlate;
+        private String value;
 
         private LicensePlateBuilder(String value) {
 
-            this.licensePlate = new LicensePlate(value);
+            this.value = value;
         }
 
         /**
@@ -125,9 +137,7 @@ public final class LicensePlate {
 
             Assert.notNull(country, "Country must not be null");
 
-            licensePlate.country = country;
-
-            return licensePlate;
+            return new LicensePlate(value, country);
         }
     }
 }
